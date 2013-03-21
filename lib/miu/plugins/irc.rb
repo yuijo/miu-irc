@@ -5,6 +5,7 @@ module Miu
   module Plugins
     class IRC
       include Miu::Plugin
+      description 'IRC plugin for miu'
 
       def initialize(options)
         @publisher = Miu::Publisher.new({
@@ -88,7 +89,7 @@ module Miu
         end
       end
 
-      register :irc, :desc => %(IRC plugin for miu) do
+      register :irc do
         desc 'start', %(Start miu-irc plugin)
         option 'host', :type => :string, :desc => 'irc host', :required => true, :aliases => '-a'
         option 'port', :type => :numeric, :default => 6667, :desc => 'irc port', :aliases => '-p'
