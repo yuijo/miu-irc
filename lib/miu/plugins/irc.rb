@@ -1,5 +1,6 @@
 require 'miu'
 require 'miu-irc/connection'
+require 'celluloid/zmq'
 
 module Miu
   module Plugins
@@ -7,17 +8,71 @@ module Miu
       include Miu::Plugin
       description 'IRC plugin for miu'
 
+      attr_reader :publisher
+      attr_reader :subscriber
+      attr_reader :options
+
+      class Publisher
+        include Celluloid::ZMQ
+
+        def initialize(host, port, tag)
+          @pub = Miu::Publisher.new host, port, :socket => Celluloid::ZMQ::PubSocket
+          @tag = tag
+        end
+
+        def write(msg)
+          packet = @pub.write @tag, msg
+          Miu::Logger.debug "[PUB] #{packet.inspect}"
+          packet
+        end
+
+        def close
+          @pub.close
+        end
+      end
+
+      class Subscriber
+        include Celluloid::ZMQ
+
+        def initialize(host, port, tag)
+          @sub = Miu::Subscriber.new host, port, :socket => Celluloid::ZMQ::SubSocket
+          @tag = tag
+        end
+
+        def run(irc)
+          @sub.subscribe @tag
+          @sub.each do |packet|
+            begin
+              Miu::Logger.debug "[SUB] #{packet.inspect}"
+              data = packet.data
+              case data
+              when Miu::Messages::Text
+                target = data.content.room.name
+                text = data.content.text
+                irc.send_message 'PRIVMSG', target, text
+              end
+            rescue => e
+              Miu::Logger.exception e
+            end
+          end
+        end
+
+        def close
+          @sub.close
+        end
+      end
+
       def initialize(options)
-        @publisher = Miu::Publisher.new({
-          :host => options[:'miu-pub-host'],
-          :port => options[:'miu-pub-port'],
-        })
-        @subscriber = Miu::Subscriber.new({
-          :host => options[:'miu-sub-host'],
-          :port => options[:'miu-sub-port'],
-          :subscribe => 'miu.output.irc.',
-        })
-        @irc_client = IRCClient.new(@publisher, {
+        @options = options
+
+        Miu::Logger.info "Options:"
+        @options.each do |k, v|
+          Miu::Logger.info "  #{k}: #{v}"
+        end
+
+        @publisher = Publisher.new options[:'pub-host'], options[:'pub-port'], options[:'pub-tag']
+        @subscriber = Subscriber.new options[:'sub-host'], options[:'sub-port'], options[:'sub-tag']
+        @irc_client = IRCClient.new(self, {
           :host => options[:host],
           :port => options[:port],
           :nick => options[:nick],
@@ -26,16 +81,6 @@ module Miu
           :pass => options[:pass],
           :channels => options[:channels],
         })
-
-        @publisher.connect
-        @subscriber.connect
-        @irc_client.async.run
-
-        @future = Celluloid::Future.new do
-          @subscriber.each do |msg|
-            p msg
-          end
-        end
 
         [:INT, :TERM].each do |sig|
           trap(sig) do
@@ -56,9 +101,13 @@ module Miu
       end
 
       class IRCClient < Miu::IRC::Connection
-        def initialize(publisher, options)
-          @publisher = publisher
+        attr_reader :plugin
+
+        def initialize(plugin, options)
+          @plugin = plugin
           super options
+
+          async.run
         end
 
         def on_privmsg(msg)
@@ -69,23 +118,26 @@ module Miu
           publish_text_message msg, 'notice'
         end
 
-        private
+        def on_376(msg)
+          super
+          @plugin.subscriber.async.run self
+        end
 
-        def publish_text_message(msg, sub_type = nil)
-          return unless msg.prefix
+        def publish_text_message(irc_msg, sub_type = nil)
+          return unless irc_msg.prefix
 
-          m = Miu::Messages::Text.new(:sub_type => sub_type) do |m|
+          miu_msg = Miu::Messages::Text.new(:sub_type => sub_type) do |m|
             m.network.name = 'irc'
             m.content.tap do |c|
-              c.room.name = msg.params[0]
-              c.user.name = msg.prefix.nick || msg.prefix.servername
-              c.text = msg.params[1]
+              c.room.name = irc_msg.params[0]
+              c.user.name = irc_msg.prefix.nick || irc_msg.prefix.servername
+              c.text = irc_msg.params[1]
             end
           end
 
-          @publisher.send 'miu.input.irc.', m
+          @plugin.publisher.write miu_msg
         rescue => e
-          Mou::Logger.exception e 
+          Miu::Logger.exception e
         end
       end
 
@@ -99,8 +151,7 @@ module Miu
         option 'pass', :type => :string, :desc => 'irc pass'
         option 'encoding', :type => :string, :default => 'UTF-8', :desc => 'irc encoding'
         option 'channels', :type => :array, :default => [], :desc => 'irc join channels', :banner => '#channel1 #channel2'
-        add_miu_pub_options!
-        add_miu_sub_options!
+        add_miu_pub_sub_options 'irc'
         def start
           IRC.new options
         end
