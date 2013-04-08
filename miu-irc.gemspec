@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'miu-irc/version'
+require 'miu/nodes/irc/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "miu-irc"
-  gem.version       = Miu::IRC::VERSION
+  gem.version       = Miu::Nodes::IRC::VERSION
   gem.authors       = ["mashiro"]
   gem.email         = ["mail@mashiro.org"]
   gem.description   = %q{irc plugin for miu}
