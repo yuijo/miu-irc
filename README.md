@@ -1,6 +1,6 @@
-# Miu::IRC
+# Miu::Nodes::IRC
 
-TODO: Write a gem description
+IRC node for Miu
 
 ## Installation
 
@@ -18,7 +18,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+miu irc init
+vim config/miu.god # edit your settings
+miu supervise
+```
 
 ## Contributing
 
