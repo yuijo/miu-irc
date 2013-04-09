@@ -17,7 +17,7 @@ module Miu
 
         def on_376(msg)
           @channels.each do |channel|
-            send_message 'JOIN', channel.split(/ +/).join(',')
+            send_message 'JOIN', *channel.split(/ +/)
           end
 
           @node.subscriber.async.run self
