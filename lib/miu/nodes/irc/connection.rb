@@ -74,8 +74,12 @@ module Miu
         end
 
         def on_message(msg)
-          method = "on_#{msg.command.to_s.downcase}"
-          __send__ method, msg if respond_to? method
+          begin
+            method = "on_#{msg.command.to_s.downcase}"
+            __send__ method, msg if respond_to? method
+          rescue => e
+            Miu::Logger.exception e
+          end
         end
       end
     end
