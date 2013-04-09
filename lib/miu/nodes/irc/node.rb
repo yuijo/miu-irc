@@ -55,7 +55,7 @@ module Miu
           option 'real', :type => :string, :desc => 'irc real'
           option 'pass', :type => :string, :desc => 'irc pass'
           option 'encoding', :type => :string, :default => 'utf-8', :desc => 'irc encoding'
-          option 'channels', :type => :array, :default => [], :desc => 'irc join channels', :banner => '#channel1 #channel2'
+          option 'channels', :type => :array, :default => [], :desc => 'irc join channels', :banner => %('#channel1 password' '#channel2')
           add_miu_pub_sub_options 'irc'
           def start
             Node.new options
