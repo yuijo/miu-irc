@@ -19,15 +19,9 @@ module Miu
               Miu::Logger.debug "[SUB] #{packet}"
 
               data = packet.data
-              case data
-              when Miu::Messages::Text
-                target = data.content.room.name
-                text = data.content.text
-                notice = !!data.content.meta['notice']
-
-                command = notice ? 'NOTICE' : 'PRIVMSG'
-                irc.send_message command, target, text
-              end
+              class_name = data.class.name.split('::').last.downcase
+              method_name = "on_#{class_name}"
+              __send__ method_name, irc, data if respond_to?(method_name)
             rescue => e
               Miu::Logger.exception e
             end
@@ -36,6 +30,27 @@ module Miu
 
         def close
           @sub.close
+        end
+
+        private
+
+        def on_text(irc, data)
+          target = data.content.room.name
+          text = data.content.text
+          notice = !!data.content.meta['notice']
+
+          command = notice ? 'NOTICE' : 'PRIVMSG'
+          irc.send_message command, target, text
+        end
+
+        def on_enter(irc, data)
+          channel = data.content.room.name
+          irc.send_message 'JOIN', channel
+        end
+
+        def on_leave(irc, data)
+          channel = data.content.room.name
+          irc.send_message 'PART', channel
         end
       end
     end
