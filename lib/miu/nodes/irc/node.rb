@@ -66,14 +66,16 @@ module Miu
             append_to_file 'config/miu.god', <<-CONF
 
 God.watch do |w|
+  options = {
+    '--host' => 'chat.freenode.net',
+    '--nick' => 'miu',
+    '--verbose' => false,
+  }
+
   w.dir = Miu.root
   w.log = Miu.root.join('log/irc.log')
   w.name = 'irc'
-
-  host = 'chat.freenode.net'
-  nick = 'miu'
-  w.start = "bundle exec miu irc start --host=\#{host} --nick=\#{nick}"
-
+  w.start = "bundle exec miu irc start \#{options.map { |k, v| "\#{k}=\#{v}" }.join(' ')}"
   w.keepalive
 end
             CONF
