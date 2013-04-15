@@ -37,7 +37,7 @@ module Miu
 
         def send_message(*args)
           msg = Ircp::Message.new(*args)
-          puts "[SEND] #{msg}"
+          Miu::Logger.debug "<< #{msg.to_s.strip}"
           @socket.write msg.to_irc
         end
 
@@ -46,7 +46,7 @@ module Miu
           readlines do |data|
             msg = Ircp.parse data rescue nil
             if msg
-              puts "[RECV] #{msg}"
+              Miu::Logger.debug ">> #{msg.to_s.strip}"
               on_message msg
             end
           end

@@ -16,7 +16,8 @@ module Miu
           @sub.subscribe @tag
           @sub.each do |packet|
             begin
-              Miu::Logger.debug "[SUB] #{packet.inspect}"
+              Miu::Logger.debug "[SUB] #{packet}"
+
               data = packet.data
               case data
               when Miu::Messages::Text

@@ -14,7 +14,7 @@ module Miu
 
         def write(msg)
           packet = @pub.write @tag, msg
-          Miu::Logger.debug "[PUB] #{packet.inspect}"
+          Miu::Logger.debug "[PUB] #{packet}"
           packet
         end
 
