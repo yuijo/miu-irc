@@ -24,7 +24,7 @@ module Miu
         end
 
         def on_ping(msg)
-          send_message 'PONG'
+          send_message 'PONG', msg.params[0]
         end
 
         def on_privmsg(msg)
