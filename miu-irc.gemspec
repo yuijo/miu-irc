@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'miu'
   gem.add_dependency 'ircp', '>= 1.1.5'
-  gem.add_dependency 'celluloid-io', '>= 0.13.0'
+  gem.add_dependency 'celluloid-io', '>= 0.13.1'
   gem.add_dependency 'celluloid-zmq', '>= 0.13.0'
   gem.add_development_dependency 'rake', '>= 10.0.3'
 end

@@ -63,22 +63,17 @@ module Miu
 
           desc 'init', %(Generates a miu-irc configurations)
           def init
-            append_to_file 'config/miu.god', <<-CONF
-
-God.watch do |w|
-  options = {
+            config <<-EOS
+Miu.watch 'irc' do |w|
+  w.start = 'miu irc start', {
     '--host' => 'chat.freenode.net',
     '--nick' => 'miu',
-    '--verbose' => false,
+    '--channels' => ['#miu'],
+    '--verbose' => false
   }
-
-  w.dir = Miu.root
-  w.log = Miu.root.join('log/irc.log')
-  w.name = 'irc'
-  w.start = "bundle exec miu irc start \#{options.map { |k, v| "\#{k}=\#{v}" }.join(' ')}"
   w.keepalive
 end
-            CONF
+            EOS
           end
         end
       end
