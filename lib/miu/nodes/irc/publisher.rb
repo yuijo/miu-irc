@@ -5,21 +5,14 @@ module Miu
   module Nodes
     module IRC
       class Publisher
+        include Miu::Publisher
         include Celluloid::ZMQ
-
-        def initialize(host, port, tag)
-          @pub = Miu::Publisher.new host, port, :socket => Celluloid::ZMQ::PubSocket
-          @tag = tag
-        end
+        socket_type Celluloid::ZMQ::PubSocket
 
         def write(msg)
-          packet = @pub.write @tag, msg
+          packet = super
           Miu::Logger.debug "[PUB] #{packet}"
           packet
-        end
-
-        def close
-          @pub.close
         end
       end
     end

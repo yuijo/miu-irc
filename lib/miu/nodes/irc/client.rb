@@ -1,18 +1,28 @@
 require 'miu/nodes/irc/connection'
+require 'miu/nodes/irc/publisher'
+require 'miu/nodes/irc/subscriber'
 
 module Miu
   module Nodes
     module IRC
       class Client < Connection
         attr_reader :channels
-        attr_reader :node
+        attr_reader :node, :publisher, :subscriber
 
         def initialize(node, options)
           super options
           @node = node
           @channels = Array(options[:channels])
+          @publisher = Publisher.new @node.options['pub-host'], @node.options['pub-port'], @node.options['pub-tag']
+          @subscriber = Subscriber.new @node.options['sub-host'], @node.options['sub-port'], @node.options['sub-tag']
 
           async.run
+        end
+
+        def close
+          @publisher.close
+          @subscriber.close
+          super
         end
 
         def on_376(msg)
@@ -20,7 +30,7 @@ module Miu
             send_message 'JOIN', *channel.split(/ +/)
           end
 
-          @node.subscriber.async.run self
+          @subscriber.async.run self
         end
 
         def on_ping(msg)
@@ -74,10 +84,10 @@ module Miu
 
         def publish(type)
           msg = type.new do |m|
-            m.network.name = 'irc'
+            m.network.name = @node.options[:network]
             yield m.content
           end
-          @node.publisher.write msg
+          @publisher.write msg
         end
       end
     end

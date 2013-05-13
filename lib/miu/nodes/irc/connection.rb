@@ -27,10 +27,6 @@ module Miu
           @socket = TCPSocket.new @host, @port
         end
 
-        def finalize
-          close
-        end
-
         def close
           @socket.close if @socket && !@socket.closed?
         end

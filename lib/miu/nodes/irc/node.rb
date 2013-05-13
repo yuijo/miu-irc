@@ -1,4 +1,4 @@
-require 'miu/nodes/irc'
+require 'miu/nodes/irc/client'
 
 module Miu
   module Nodes
@@ -7,8 +7,6 @@ module Miu
         include Miu::Node
         description 'IRC node for miu'
 
-        attr_reader :publisher
-        attr_reader :subscriber
         attr_reader :options
 
         def initialize(options)
@@ -19,8 +17,6 @@ module Miu
             Miu::Logger.info "  #{k}: #{v}"
           end
 
-          @publisher = Publisher.new options['pub-host'], options['pub-port'], options['pub-tag']
-          @subscriber = Subscriber.new options['sub-host'], options['sub-port'], options['sub-tag']
           @client = Client.new(self, {
             :host => options[:host], :port => options[:port],
             :nick => options[:nick], :user => options[:user], :real => options[:real],
@@ -29,10 +25,7 @@ module Miu
           })
 
           [:INT, :TERM].each do |sig|
-            trap(sig) do
-              shutdown
-              exit
-            end
+            trap(sig) { exit }
           end
 
           sleep
@@ -42,8 +35,6 @@ module Miu
 
         def shutdown
           @client.close
-          @subscriber.close
-          @publisher.close
         end
 
         register :irc do
@@ -56,7 +47,9 @@ module Miu
           option 'pass', :type => :string, :desc => 'irc pass'
           option 'encoding', :type => :string, :default => 'utf-8', :desc => 'irc encoding'
           option 'channels', :type => :array, :default => [], :desc => 'irc join channels', :banner => %('#channel1 password' '#channel2')
-          add_miu_pub_sub_options 'irc'
+          option 'network', :type => :string, :default => 'irc', :desc => 'network name'
+          add_miu_pub_options 'miu.input.irc.'
+          add_miu_sub_options 'miu.output.irc.'
           def start
             Node.new options
           end
