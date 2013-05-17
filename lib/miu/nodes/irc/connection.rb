@@ -35,6 +35,10 @@ module Miu
           msg = Ircp::Message.new(*args)
           Miu::Logger.debug "<< #{msg.to_s.strip}"
           @socket.write msg.to_irc
+
+          echoback = msg.dup
+          echoback.prefix = Ircp::Prefix.new(:nick => @nick)
+          echoback
         end
 
         def run
