@@ -47,7 +47,7 @@ module Miu
           option 'pass', :type => :string, :desc => 'irc pass'
           option 'encoding', :type => :string, :default => 'utf-8', :desc => 'irc encoding'
           option 'channels', :type => :array, :default => [], :desc => 'irc join channels', :banner => %('#channel1 password' '#channel2')
-          option 'network', :type => :string, :default => 'irc', :desc => 'network name'
+          option 'network', :type => :string, :default => 'IRC', :desc => 'network name'
           add_miu_pub_options 'miu.input.irc.'
           add_miu_sub_options 'miu.output.irc.'
           def start

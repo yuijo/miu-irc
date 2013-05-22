@@ -12,7 +12,7 @@ module Miu
         def initialize(client)
           @client = client
           @options = client.options
-          super @options['sub-host'], @options['sub-port'], @options['sub-tag']
+          super @options['sub-topic'], @options['sub-host'], @options['sub-port']
         end
 
         private
@@ -22,7 +22,7 @@ module Miu
           super
         end
 
-        def on_text(tag, msg)
+        def on_text(topic, msg)
           target = msg.content.room.name
           text = msg.content.text
           notice = !!msg.content.meta['notice']
@@ -32,13 +32,13 @@ module Miu
           @client.publisher.text echoback, notice
         end
 
-        def on_enter(tag, msg)
+        def on_enter(topic, msg)
           channel = msg.content.room.name
           echoback = @client.send_message 'JOIN', channel
           @client.publisher.enter echoback
         end
 
-        def on_leave(tag, msg)
+        def on_leave(topic, msg)
           channel = msg.content.room.name
           echoback = @client.send_message 'PART', channel
           @client.publisher.leave echoback

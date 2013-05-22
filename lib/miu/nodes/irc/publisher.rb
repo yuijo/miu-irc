@@ -12,7 +12,7 @@ module Miu
         def initialize(client)
           @client = client
           @options = client.options
-          super @options['pub-host'], @options['pub-port'], @options['pub-tag']
+          super @options['pub-topic'], @options['pub-host'], @options['pub-port']
         end
 
         def write(msg)
@@ -23,7 +23,9 @@ module Miu
 
         def publish(type)
           msg = type.new do |m|
-            m.network.name = @options[:network]
+            m.network.name = @options['network']
+            m.network.input = @options['pub-topic']
+            m.network.output = @options['sub-topic']
             yield m.content
           end
           write msg
