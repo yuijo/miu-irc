@@ -23,9 +23,9 @@ module Miu
         end
 
         def on_text(topic, msg)
-          target = msg.content.room.name
-          text = msg.content.text
-          notice = !!msg.content.meta['notice']
+          target = msg.room.name
+          text = msg.text
+          notice = !!msg.meta['notice']
 
           command = notice ? 'NOTICE' : 'PRIVMSG'
           echoback = @client.send_message command, target, text
@@ -33,13 +33,13 @@ module Miu
         end
 
         def on_enter(topic, msg)
-          channel = msg.content.room.name
+          channel = msg.room.name
           echoback = @client.send_message 'JOIN', channel
           @client.publisher.enter echoback
         end
 
         def on_leave(topic, msg)
-          channel = msg.content.room.name
+          channel = msg.room.name
           echoback = @client.send_message 'PART', channel
           @client.publisher.leave echoback
         end

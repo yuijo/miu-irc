@@ -26,17 +26,17 @@ module Miu
             m.network.name = @options['network']
             m.network.input = @options['pub-topic']
             m.network.output = @options['sub-topic']
-            yield m.content
+            yield m
           end
           write msg
         end
 
         def text(msg, notice = false)
-          publish Miu::Messages::Text do |c|
-            c.room.name = msg.params[0]
-            c.user.name = extract_name msg
-            c.text = msg.params[1]
-            c.meta = {
+          publish Miu::Messages::Text do |m|
+            m.room.name = msg.params[0]
+            m.user.name = extract_name msg
+            m.text = msg.params[1]
+            m.meta = {
               :notice => notice
             }
           end
@@ -45,9 +45,9 @@ module Miu
         def enter(msg)
           channels = msg.params[0].split(',') rescue []
           channels.each do |channel|
-            publish Miu::Messages::Enter do |c|
-              c.room.name = channel
-              c.user.name = extract_name msg
+            publish Miu::Messages::Enter do |m|
+              m.room.name = channel
+              m.user.name = extract_name msg
             end
           end
         end
@@ -55,9 +55,9 @@ module Miu
         def leave(msg)
           channels = msg.params[0].split(',') rescue []
           channels.each do |channel|
-            publish Miu::Messages::Leave do |c|
-              c.room.name = channel
-              c.user.name = extract_name msg
+            publish Miu::Messages::Leave do |m|
+              m.room.name = channel
+              m.user.name = extract_name msg
             end
           end
         end
